@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0091)file:///Users/aqfinanzas/Downloads/Registro_de_Operaciones___Me_todo_RCR___Excedente_3.html -->
+<!-- saved from url=(0088)file:///Users/aqfinanzas/Downloads/Registro_de_Operaciones___Metodo_RCR___Excedente.html -->
 <html lang="es"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -136,6 +136,23 @@ main{flex:1;padding:1.5rem 1rem 3rem;max-width:820px;margin:0 auto;width:100%;}
 .stat-val.red{color:var(--red);}
 .stat-val.orange{color:var(--orange);}
 
+/* Captura de pantalla */
+.cap-zone{border:1.5px dashed var(--border2);border-radius:var(--radius-lg);padding:1.5rem 1rem;text-align:center;cursor:pointer;transition:all 0.15s;background:var(--surface2);}
+.cap-zone:hover,.cap-zone.drag{border-color:var(--navy);background:var(--navy-light);}
+.cap-ico{font-size:30px;margin-bottom:6px;}
+.cap-t{font-size:14px;font-weight:700;color:var(--navy);margin-bottom:3px;}
+.cap-d{font-size:12px;color:var(--text2);line-height:1.5;}
+.cap-prev{display:none;}
+.cap-prev img{width:100%;border-radius:var(--radius-md);border:1px solid var(--border2);display:block;}
+.cap-bar{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap;}
+.cap-name{font-size:12px;color:var(--text2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.btn-mini{padding:8px 14px;border-radius:var(--radius-md);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;border:1px solid var(--border2);background:white;color:var(--text2);transition:all 0.15s;}
+.btn-mini:hover{background:var(--surface2);}
+.btn-mini.danger{border-color:var(--red);color:var(--red);}
+.btn-mini.navy{border-color:var(--navy);color:var(--navy);}
+.btn-pri:disabled,.btn-exp:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
+.btn-pri:disabled:hover{background:var(--navy);transform:none;}
+.btn-exp:disabled:hover{background:var(--orange);}
 footer{text-align:center;padding:14px;font-size:12px;color:var(--text3);border-top:0.5px solid var(--border);background:var(--surface);}
 @media(max-width:600px){.row2,.row3,.fases-grid,.result-row,.stats-bar{grid-template-columns:1fr 1fr;}.stats-bar{grid-template-columns:1fr 1fr;}.row3{grid-template-columns:1fr;}}
 </style>
@@ -163,7 +180,7 @@ footer{text-align:center;padding:14px;font-size:12px;color:var(--text3);border-t
     <div class="dl-icon">📥</div>
     <div class="dl-text">
       <div class="dl-title">¡Operación registrada!</div>
-      <div class="dl-desc">Descarga tu registro en Excel para guardarlo y enviarlo a tu mentor.</div>
+      <div class="dl-desc">Descarga tu registro en Excel para guardarlo y enviarlo a tu mentor. Al descargar, el formulario vuelve a cero.</div>
     </div>
     <button class="btn-exp" onclick="exportExcel()">⬇ Descargar Excel</button>
   </div>
@@ -294,9 +311,32 @@ footer{text-align:center;padding:14px;font-size:12px;color:var(--text3);border-t
       </div>
     </div>
 
+    <!-- Captura de pantalla -->
+    <div class="card">
+      <div class="sec-title"><div class="sec-dot"></div>Captura de pantalla (TradingView)</div>
+
+      <div class="cap-zone" id="capZone" onclick="document.getElementById(&#39;capInput&#39;).click()">
+        <div class="cap-ico">📸</div>
+        <div class="cap-t">Adjunta la captura de tu gráfico</div>
+        <div class="cap-d">Haz clic para elegir la imagen, arrástrala aquí o pégala con Ctrl + V</div>
+      </div>
+      <input type="file" id="capInput" accept="image/*" style="display:none" onchange="capArchivo(this.files[0])">
+
+      <div class="cap-prev" id="capPrev">
+        <img id="capImg" src="file:///Users/aqfinanzas/Downloads/Registro_de_Operaciones___Metodo_RCR___Excedente.html" alt="Captura de la operación">
+        <div class="cap-bar">
+          <span class="cap-name" id="capName"></span>
+          <button type="button" class="btn-mini navy" onclick="descargarCaptura()">⬇ Descargar imagen</button>
+          <button type="button" class="btn-mini" onclick="document.getElementById(&#39;capInput&#39;).click()">Cambiar</button>
+          <button type="button" class="btn-mini danger" onclick="quitarCaptura()">Quitar</button>
+        </div>
+      </div>
+    </div>
+
     <div class="btn-row">
       <button type="button" class="btn-sec" onclick="limpiarForm()">Limpiar</button>
-      <button type="button" class="btn-pri" onclick="descargarRegistro()">⬇ Descargar Excel</button>
+      <button type="button" class="btn-pri" id="btnGuardar" onclick="guardarOperacion()">✔ Guardar operación</button>
+      <button type="button" class="btn-exp" id="btnDescargar" onclick="descargarRegistro()" disabled="">⬇ Descargar Excel</button>
     </div>
 
   </form>
@@ -458,7 +498,8 @@ function guardarOperacion() {
     stopLoss: getRadio('sl'),
     primerObj: getRadio('obj'),
     fase1: fases[1], fase2: fases[2], fase3: fases[3], fase4: fases[4],
-    notas: document.getElementById('notas').value
+    notas: document.getElementById('notas').value,
+    captura: captura
   };
 
   const g = parseFloat(op.ganancia) || 0;
@@ -469,6 +510,7 @@ function guardarOperacion() {
   operaciones[0] = op;
   updateStats();
   initDots();
+  document.getElementById('btnDescargar').disabled = false;
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -486,6 +528,7 @@ function limpiarForm() {
   document.querySelectorAll('.radio-item').forEach(r=>r.classList.remove('selected'));
   document.querySelectorAll('.fase-btn').forEach(b=>b.classList.remove('active'));
   fases={1:'',2:'',3:'',4:''};
+  quitarCaptura();
 }
 
 function cargarOperacion(op) {
@@ -517,6 +560,7 @@ function cargarOperacion(op) {
     const r = document.querySelector('input[name="obj"][value="' + op.primerObj + '"]');
     if (r) { r.checked = true; r.closest('.radio-item').classList.add('selected'); }
   }
+  if (op.captura) { captura = op.captura; mostrarCaptura(); }
   fases = {1:op.fase1||'',2:op.fase2||'',3:op.fase3||'',4:op.fase4||''};
   [1,2,3,4].forEach(n => {
     if (fases[n]) {
@@ -527,14 +571,17 @@ function cargarOperacion(op) {
 }
 
 function descargarRegistro() {
-  const simbolo = document.getElementById('simbolo').value.trim();
-  if (!simbolo) { alert('Por favor ingresa el símbolo de la acción.'); return; }
-  guardarOperacion();
+  if (!operaciones.filter(Boolean).length) {
+    alert('Primero guarda la operación con el botón "Guardar operación".');
+    return;
+  }
   exportExcel();
 }
 
 function exportExcel() {
   const wb = XLSX.utils.book_new();
+  const imagenes = [];
+  let hojaNum = 1;
   operaciones.forEach((op, idx) => {
     if (!op) return;
     const rows = [
@@ -568,11 +615,32 @@ function exportExcel() {
       ['  NOTAS Y OBSERVACIONES'],
       ['', op.notas || ''],
       [],
-      ['@aqfinanzas  ·  @aqexcedente  ·  Club Excedente  ·  Alejandro Quiñones'],
     ];
+
+    // Captura de pantalla (se incrusta como imagen dentro de la hoja)
+    if (op.captura) {
+      rows.push(['  CAPTURA DE PANTALLA (TRADINGVIEW)']);
+      rows.push(['', op.captura.nombre || 'captura.jpg']);
+      rows.push([]); rows.push([]); rows.push([]); rows.push([]); rows.push([]);
+      const disp = tamanoExcel(op.captura);
+      imagenes.push({
+        sheetIndex: hojaNum,
+        dataUrl: op.captura.dataUrl,
+        wpx: disp.w,
+        hpx: disp.h,
+        row: rows.length
+      });
+      const filasImg = Math.ceil(disp.h / 20) + 2;
+      for (let f = 0; f < filasImg; f++) rows.push([]);
+      rows.push([]);
+    }
+
+    rows.push(['@aqfinanzas  ·  @aqexcedente  ·  Club Excedente  ·  Alejandro Quiñones']);
+
     const ws = XLSX.utils.aoa_to_sheet(rows);
     ws['!cols'] = [{wch:8},{wch:40},{wch:14},{wch:14},{wch:12},{wch:12},{wch:12}];
     XLSX.utils.book_append_sheet(wb, ws, 'Op #' + op.numero);
+    hojaNum++;
   });
 
   // Resumen
@@ -597,7 +665,207 @@ function exportExcel() {
   wsRes['!cols'] = [{wch:4},{wch:12},{wch:12},{wch:12},{wch:12},{wch:12},{wch:12},{wch:30},{wch:20},{wch:18}];
   XLSX.utils.book_append_sheet(wb, wsRes, 'Resumen');
 
-  XLSX.writeFile(wb, 'Registro_Operaciones_RCR.xlsx');
+  const nombreArchivo = 'Registro_Operaciones_RCR.xlsx';
+  const salida = XLSX.write(wb, { type: 'array', bookType: 'xlsx' });
+  let bytes;
+  try {
+    bytes = imagenes.length ? incrustarImagenes(salida, imagenes) : new Uint8Array(salida);
+  } catch (e) {
+    bytes = new Uint8Array(salida);
+  }
+  descargarBytes(bytes, nombreArchivo, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+
+  // Al descargar, el registro queda en cero
+  setTimeout(reiniciarTodo, 400);
+}
+
+/* ---------- Utilidades de descarga e imagen en Excel ---------- */
+
+function descargarBytes(bytes, nombre, tipo) {
+  const blob = new Blob([bytes], { type: tipo });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = nombre;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+}
+
+function dataUrlABytes(dataUrl) {
+  const base64 = dataUrl.split(',')[1];
+  const bin = atob(base64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return bytes;
+}
+
+function textoABytes(txt) {
+  const b = new Uint8Array(txt.length);
+  for (let i = 0; i < txt.length; i++) b[i] = txt.charCodeAt(i) & 0xFF;
+  return b;
+}
+
+function bytesATexto(bytes) {
+  let out = '';
+  for (let i = 0; i < bytes.length; i++) out += String.fromCharCode(bytes[i]);
+  return decodeURIComponent(escape(out));
+}
+
+// Tamano con el que se vera la imagen dentro del Excel (max 720 px de ancho)
+function tamanoExcel(cap) {
+  const maxW = 720;
+  let w = cap.w, h = cap.h;
+  if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+  return { w: w, h: h };
+}
+
+// Inserta las imagenes dentro del .xlsx (media + drawing + relaciones)
+function incrustarImagenes(salida, imagenes) {
+  const zip = XLSX.CFB.read(new Uint8Array(salida), { type: 'array' });
+  const EMU = 9525;
+  const ctFile = XLSX.CFB.find(zip, '/[Content_Types].xml');
+  let ct = bytesATexto(ctFile.content);
+
+  imagenes.forEach(function (im, k) {
+    const n = k + 1;
+    XLSX.CFB.utils.cfb_add(zip, '/xl/media/image' + n + '.jpeg', dataUrlABytes(im.dataUrl));
+
+    const cx = Math.round(im.wpx * EMU), cy = Math.round(im.hpx * EMU);
+    const drawing = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\r\n' +
+      '<xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">' +
+      '<xdr:oneCellAnchor><xdr:from><xdr:col>1</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>' + im.row + '</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:from>' +
+      '<xdr:ext cx="' + cx + '" cy="' + cy + '"/>' +
+      '<xdr:pic><xdr:nvPicPr><xdr:cNvPr id="' + (n + 1) + '" name="Captura ' + n + '"/>' +
+      '<xdr:cNvPicPr><a:picLocks noChangeAspect="1"/></xdr:cNvPicPr></xdr:nvPicPr>' +
+      '<xdr:blipFill><a:blip xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" r:embed="rId1"/>' +
+      '<a:stretch><a:fillRect/></a:stretch></xdr:blipFill>' +
+      '<xdr:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="' + cx + '" cy="' + cy + '"/></a:xfrm>' +
+      '<a:prstGeom prst="rect"><a:avLst/></a:prstGeom></xdr:spPr>' +
+      '</xdr:pic><xdr:clientData/></xdr:oneCellAnchor></xdr:wsDr>';
+    XLSX.CFB.utils.cfb_add(zip, '/xl/drawings/drawing' + n + '.xml', textoABytes(drawing));
+
+    const relDibujo = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\r\n' +
+      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+      '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="../media/image' + n + '.jpeg"/></Relationships>';
+    XLSX.CFB.utils.cfb_add(zip, '/xl/drawings/_rels/drawing' + n + '.xml.rels', textoABytes(relDibujo));
+
+    const relHoja = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\r\n' +
+      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+      '<Relationship Id="rIdDraw1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing" Target="../drawings/drawing' + n + '.xml"/></Relationships>';
+    XLSX.CFB.utils.cfb_add(zip, '/xl/worksheets/_rels/sheet' + im.sheetIndex + '.xml.rels', textoABytes(relHoja));
+
+    const hoja = XLSX.CFB.find(zip, '/xl/worksheets/sheet' + im.sheetIndex + '.xml');
+    let xml = bytesATexto(hoja.content).replace('</worksheet>', '<drawing r:id="rIdDraw1"/></worksheet>');
+    const nuevo = textoABytes(unescape(encodeURIComponent(xml)));
+    hoja.content = nuevo; hoja.size = nuevo.length;
+
+    ct = ct.replace('</Types>', '<Override PartName="/xl/drawings/drawing' + n + '.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/></Types>');
+  });
+
+  const ctb = textoABytes(unescape(encodeURIComponent(ct)));
+  ctFile.content = ctb; ctFile.size = ctb.length;
+  return XLSX.CFB.write(zip, { fileType: 'zip', type: 'array', compression: false });
+}
+
+/* ---------- Captura de pantalla ---------- */
+
+let captura = null;
+
+function capArchivo(file) {
+  if (!file) return;
+  if (!file.type || file.type.indexOf('image/') !== 0) {
+    alert('El archivo debe ser una imagen (PNG o JPG).');
+    return;
+  }
+  const lector = new FileReader();
+  lector.onload = function (e) {
+    const img = new Image();
+    img.onload = function () {
+      const maxW = 1400;
+      let w = img.width, h = img.height;
+      if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+      const cv = document.createElement('canvas');
+      cv.width = w; cv.height = h;
+      const cx = cv.getContext('2d');
+      cx.fillStyle = '#ffffff';
+      cx.fillRect(0, 0, w, h);
+      cx.drawImage(img, 0, 0, w, h);
+      captura = {
+        dataUrl: cv.toDataURL('image/jpeg', 0.85),
+        w: w, h: h,
+        nombre: (file.name || 'captura').replace(/\.[^.]+$/, '') + '.jpg'
+      };
+      mostrarCaptura();
+    };
+    img.onerror = function () { alert('No se pudo leer la imagen. Intenta con otro archivo.'); };
+    img.src = e.target.result;
+  };
+  lector.readAsDataURL(file);
+}
+
+function mostrarCaptura() {
+  if (!captura) return;
+  document.getElementById('capImg').src = captura.dataUrl;
+  document.getElementById('capName').textContent = captura.nombre + '  (' + captura.w + ' \u00d7 ' + captura.h + ' px)';
+  document.getElementById('capPrev').style.display = 'block';
+  document.getElementById('capZone').style.display = 'none';
+}
+
+function quitarCaptura() {
+  captura = null;
+  document.getElementById('capInput').value = '';
+  document.getElementById('capImg').src = '';
+  document.getElementById('capPrev').style.display = 'none';
+  document.getElementById('capZone').style.display = 'block';
+}
+
+function descargarCaptura() {
+  if (!captura) return;
+  const simbolo = document.getElementById('simbolo').value.trim() || 'Operacion';
+  const fecha = document.getElementById('fecha').value || '';
+  descargarBytes(dataUrlABytes(captura.dataUrl), 'Captura_' + simbolo + (fecha ? '_' + fecha : '') + '.jpg', 'image/jpeg');
+}
+
+// Arrastrar y soltar
+(function () {
+  const zona = document.getElementById('capZone');
+  ['dragenter', 'dragover'].forEach(function (ev) {
+    zona.addEventListener(ev, function (e) { e.preventDefault(); zona.classList.add('drag'); });
+  });
+  ['dragleave', 'drop'].forEach(function (ev) {
+    zona.addEventListener(ev, function (e) { e.preventDefault(); zona.classList.remove('drag'); });
+  });
+  zona.addEventListener('drop', function (e) {
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) capArchivo(e.dataTransfer.files[0]);
+  });
+})();
+
+// Pegar con Ctrl + V
+document.addEventListener('paste', function (e) {
+  const items = (e.clipboardData && e.clipboardData.items) || [];
+  for (let i = 0; i < items.length; i++) {
+    if (items[i].type && items[i].type.indexOf('image/') === 0) {
+      const f = items[i].getAsFile();
+      if (f) { capArchivo(f); e.preventDefault(); }
+      break;
+    }
+  }
+});
+
+/* ---------- Reinicio despues de descargar ---------- */
+
+function reiniciarTodo() {
+  operaciones = [];
+  opActual = 1;
+  limpiarForm();
+  document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
+  document.getElementById('opLabel').textContent = 'Operaci\u00f3n #1';
+  document.getElementById('btnDescargar').disabled = true;
+  updateStats();
+  initDots();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // Checkbox visual feedback
